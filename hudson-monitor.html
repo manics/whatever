@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			var url = "http://hudson.openmicroscopy.org.uk/api/json";
+			//var url = "http://hudson.openmicroscopy.org.uk/api/xml?wrapper=foo";
+			//var urltree = "&tree=jobs[name,url,color,builds[url,timestamp]]";
+			//var urlxpath = "&xpath=/hudson/job/name|/hudson/job/color|/hudson/job/build[1]/url|/hudson/job/build[1]/timestamp";
+			
+			var wantedJobs = [
+				"BIOFORMATS-4.4",
+				"OMERO-merge-4.4",
+				"OMERO-merge-develop",
+				"OMERO-trunk",
+				"OMERO-trunk-ice34",
+			];
+			wantedJobs = [];
+
+			function formatDate(d) {
+				var s = '' + d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + (d.getDate() + 1) +
+					' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+			}
+
+			function updateDisplay(data) {
+				var items = [];
+
+				$.each(data.jobs, function(key, val) {
+				if (wantedJobs.length == 0 || $.inArray(val.name, wantedJobs) > -1) {
+					items.push('<div class="build"><div class="buildstatus ' + val.color + '">' +
+						'<a href="' + val.url + '">' + val.name + '</a></div></div>');
+					}
+				});
+
+				var dtclass = "datetime";
+				if (data.jobs.length % 2 == 0) {
+					dtclass += " datetime100";
+				}
+				items.push('<div class="' + dtclass + '">Updated: ' + (new Date()) + '</div>')
+
+				$('#display').empty();
+					$('<div/>', {
+					'class': 'build-status',
+					html: items.join('')
+				}).appendTo('#display');
+			}
+
+			function update() {
+				var r = jQuery.ajax({
+					url: url,
+					success: function(data) { updateDisplay(data); setTimeout(update, 30000); },
+					jsonp: "jsonp",
+					dataType: "jsonp"});
+			}
+
+			$(document).ready(function() { update(); })
+
+		</script>
+
+		<style>
+			body {
+				margin: 0;
+				background-color: black;
+			}
+			div.build {
+				width: 33.33%;
+				float: left;
+				overflow: hidden;
+				white-space: nowrap;
+			}
+			div.buildstatus {
+				color: white;
+				text-align: center;
+				font: 12pt helvetica;
+				font-weight: bold;
+				border-width: 3px;
+				border-style: solid;
+			}
+			div.buildstatus a {
+				text-decoration: none;
+				color: inherit;
+			}
+			div.buildstatus a:hover {
+				text-decoration: underline;
+			}
+			div.datetime {
+				color: white;
+				font: 10pt helvetica;
+				text-align: center;
+			}
+			div.datetime100 {
+				clear: both;
+			}
+			.red {
+				background-color: darkred;
+				border-color: darkred;
+			}
+			.red_anime {
+				background-color: red;
+				border-color: yellow;
+			}
+			.blue {
+				background-color: darkblue;
+				border-color: darkblue;
+			}
+			.blue_anime {
+				background-color: blue;
+				border-color: yellow;
+			}
+			.grey {
+				background-color: gray;
+				border-color:  gray;
+			}
+			.disabled {
+				background-color: black;
+				border-color: black;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="display"></div>
+	</body>
+</html>
+
